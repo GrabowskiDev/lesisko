@@ -82,7 +82,7 @@ export function FocusScreen({ settings, onStart, onOpenSettings }: {
 
       <button className="tree-stage idle" onClick={() => setSpeciesSheet(true)} aria-label={t.chooseTree}>
         <Tree species={species} size={150} />
-        <span className="tree-stage-name">{speciesNames[species.id].name} <Icon name="pencil" size={14} /></span>
+        <span className="tree-stage-name">{speciesNames[species.id].name}</span>
       </button>
 
       <div className="focus-controls">
