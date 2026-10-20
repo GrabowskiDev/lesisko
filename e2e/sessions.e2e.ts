@@ -61,6 +61,30 @@ test.describe('logging and editing sessions', () => {
     await expect(app.locator('.session-row')).toHaveCount(0)
   })
 
+  test('a new tag can be created while logging time, with Enter or the Add button', async ({ app }) => {
+    // Used to submit the page (a <form> nested in the session form): it reloaded and saved nothing.
+    await app.evaluate(() => Object.assign(window, { notReloaded: true }))
+    await app.getByRole('button', { name: 'Log time I forgot to track' }).click()
+    const sheet = app.getByRole('dialog', { name: 'Log focus time' })
+
+    await sheet.getByRole('button', { name: 'New tag' }).click()
+    await sheet.getByPlaceholder('Tag name').fill('Physics')
+    await sheet.getByPlaceholder('Tag name').press('Enter')
+    await expect(sheet.getByRole('button', { name: 'Physics' })).toHaveClass(/selected/)
+
+    await sheet.getByRole('button', { name: 'New tag' }).click()
+    await sheet.getByPlaceholder('Tag name').fill('Chemistry')
+    await sheet.getByRole('button', { name: 'Add', exact: true }).click()
+    await expect(sheet.getByRole('button', { name: 'Chemistry' })).toHaveClass(/selected/)
+
+    expect(await app.evaluate(() => (window as unknown as { notReloaded?: boolean }).notReloaded)).toBe(true)
+    await sheet.getByRole('button', { name: 'Add 1h' }).click()
+    await expect(sheet).toBeHidden()
+    await tab(app, 'Stats')
+    await expect(app.locator('.tag-bars')).toContainText('Chemistry')
+    await expect(app.locator('.tag-bars li')).toHaveCount(1)
+  })
+
   test('tags can be created, used, renamed and deleted', async ({ app }) => {
     await app.locator('.focus-controls').getByRole('button', { name: 'No tag' }).click()
     const sheet = app.getByRole('dialog', { name: 'What are you focusing on?' })

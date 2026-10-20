@@ -11,13 +11,19 @@ export function TagDot({ tag }: { tag: Tag | undefined }) {
   return <span className="tag-dot" style={{ background: tagColor(tag, dark) }} />
 }
 
-export function TagChip({ tag, onClick }: { tag: Tag | undefined; onClick?: () => void }) {
+/** A tag label; tappable only when `onClick` is given. `emptyLabel` replaces "No tag" with a call to action. */
+export function TagChip({ tag, onClick, emptyLabel }: { tag: Tag | undefined; onClick?: () => void; emptyLabel?: string }) {
   const { t } = useI18n()
-  return (
-    <button type="button" className="chip" onClick={onClick}>
-      <TagDot tag={tag} />
-      {tag?.name ?? t.common.noTag}
-    </button>
+  const content = (
+    <>
+      {!tag && emptyLabel ? <Icon name="plus" size={14} /> : <TagDot tag={tag} />}
+      {tag?.name ?? emptyLabel ?? t.common.noTag}
+    </>
+  )
+  return onClick ? (
+    <button type="button" className="chip" onClick={onClick}>{content}</button>
+  ) : (
+    <span className="chip">{content}</span>
   )
 }
 
@@ -50,10 +56,25 @@ export function TagPicker({ value, onChange }: {
         </button>
       ))}
       {adding ? (
-        <form className="chip-input" onSubmit={(e) => { e.preventDefault(); void add() }}>
-          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t.pickers.tagPlaceholder} maxLength={24} onBlur={() => !name && setAdding(false)} />
-          <button type="submit" className="chip selected">{t.common.add}</button>
-        </form>
+        // Not a <form>: this picker also lives inside the session form, and nested forms
+        // submit the page. Enter is handled by hand instead (and kept from the outer form).
+        <div className="chip-input">
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return
+              e.preventDefault()
+              void add()
+            }}
+            enterKeyHint="done"
+            placeholder={t.pickers.tagPlaceholder}
+            maxLength={24}
+            onBlur={() => !name && setAdding(false)}
+          />
+          <button type="button" className="chip selected" onClick={() => void add()}>{t.common.add}</button>
+        </div>
       ) : (
         <button type="button" className="chip ghost" onClick={() => setAdding(true)}>
           <Icon name="plus" size={14} /> {t.pickers.newTag}

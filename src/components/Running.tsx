@@ -6,7 +6,7 @@ import { awayMs, judgeAbsence, plannedEnd } from '../lib/penalty'
 import { chime } from '../lib/sound'
 import { formatClock, MINUTE } from '../lib/time'
 import { saveSession, useTags } from '../store'
-import { TagChip } from './Pickers'
+import { TagChip, TagSheet } from './Pickers'
 import { Tree } from './Tree'
 import { CoinIcon, Sheet } from './ui'
 import type { ActiveSession, Session, Settings } from '../types'
@@ -37,6 +37,7 @@ export function Running({ active: initial, settings, onClose }: Props) {
   const [result, setResult] = useState<Session | null>(null)
   const [tooShort, setTooShort] = useState(false)
   const [saveFailed, setSaveFailed] = useState(false)
+  const [tagSheet, setTagSheet] = useState(false)
   const finishing = useRef(false)
   const tags = useTags()
 
@@ -164,7 +165,8 @@ export function Running({ active: initial, settings, onClose }: Props) {
       <div className="clock" aria-live="off">
         {end == null ? formatClock(elapsed) : formatClock(end - now)}
       </div>
-      <TagChip tag={tag} />
+      {/* A tag can be added to a running tree, but one that's already chosen stays put. */}
+      {tag ? <TagChip tag={tag} /> : <TagChip tag={undefined} emptyLabel={t.addTag} onClick={() => setTagSheet(true)} />}
 
       <div className="running-actions">
         {end == null ? (
@@ -180,6 +182,13 @@ export function Running({ active: initial, settings, onClose }: Props) {
           {settings.penaltyMode === 'ask' ? t.ruleAsk : t.ruleStrict(settings.strictMinutes)}
         </p>
       )}
+
+      <TagSheet
+        open={tagSheet}
+        onClose={() => setTagSheet(false)}
+        value={null}
+        onChange={(tagId) => update({ ...activeRef.current, tagId })}
+      />
 
       <Sheet open={confirmGiveUp} onClose={() => setConfirmGiveUp(false)} title={t.giveUpTitle}>
         <p className="hint">{t.giveUpBody}</p>

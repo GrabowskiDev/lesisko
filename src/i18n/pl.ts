@@ -63,6 +63,7 @@ export const pl: Messages = {
       'Każda minuta się liczy.',
     ],
     done: 'Kończę',
+    addTag: 'Dodaj tag',
     giveUp: 'Zrezygnuj',
     ruleAsk: 'Blokowanie telefonu jest OK — jeśli znikniesz na dłużej, zapytam, jak poszło.',
     ruleStrict: (min) => `Wyjdź na dłużej niż ${min} min, a drzewo uschnie.`,

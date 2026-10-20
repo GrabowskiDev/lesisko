@@ -76,6 +76,7 @@ export const en = {
       'Every minute counts.',
     ],
     done: 'I’m done',
+    addTag: 'Add a tag',
     giveUp: 'Give up',
     ruleAsk: 'Locking your phone is fine — if you’re away a while, I’ll ask how it went.',
     ruleStrict: (min: number) => `Away for more than ${min} min and your tree withers.`,

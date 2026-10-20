@@ -110,6 +110,41 @@ test.describe('focus timer', () => {
     expect(await app.evaluate(() => localStorage.getItem('better-forest.active'))).not.toBeNull()
   })
 
+  test('a running tree without a tag can be given one', async ({ app }) => {
+    await setMinutes(app, 5)
+    await app.getByRole('button', { name: 'Plant' }).click()
+    await app.getByRole('button', { name: 'Add a tag' }).click()
+    const sheet = app.getByRole('dialog', { name: 'What are you focusing on?' })
+    await sheet.getByRole('button', { name: 'New tag' }).click()
+    await sheet.getByPlaceholder('Tag name').fill('Math')
+    await sheet.getByRole('button', { name: 'Add', exact: true }).click()
+    await expect(sheet).toBeHidden()
+
+    // Now that it has a tag, it can't be changed any more.
+    await expect(app.locator('.running .chip')).toHaveText('Math')
+    await expect(app.locator('.running').getByRole('button', { name: 'Math' })).toHaveCount(0)
+
+    // The tag survives a reload mid-session and ends up on the saved tree.
+    await app.reload()
+    await expect(app.locator('.running .chip')).toHaveText('Math')
+    await app.clock.fastForward(5 * MIN)
+    await app.getByRole('button', { name: 'Back to my forest' }).click()
+    await tab(app, 'Stats')
+    await expect(app.locator('.tag-bars')).toContainText('Math')
+  })
+
+  test('a running tree that already has a tag keeps it', async ({ app }) => {
+    await app.locator('.focus-controls').getByRole('button', { name: 'No tag' }).click()
+    const sheet = app.getByRole('dialog', { name: 'What are you focusing on?' })
+    await sheet.getByRole('button', { name: 'New tag' }).click()
+    await sheet.getByPlaceholder('Tag name').fill('Thesis')
+    await sheet.getByRole('button', { name: 'Add', exact: true }).click()
+    await app.getByRole('button', { name: 'Plant' }).click()
+    await expect(app.locator('.running .chip')).toHaveText('Thesis')
+    await expect(app.locator('.running').getByRole('button', { name: 'Thesis' })).toHaveCount(0)
+    await expect(app.getByRole('button', { name: 'Add a tag' })).toHaveCount(0)
+  })
+
   test('giving up withers the tree', async ({ app }) => {
     await app.getByRole('button', { name: 'Plant' }).click()
     await app.getByRole('button', { name: 'Give up' }).click()
