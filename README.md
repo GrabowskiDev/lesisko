@@ -1,0 +1,60 @@
+# Better Forest 🌳
+
+A cozy, Forest-style focus timer that runs as an installable web app (PWA) on iPhone — no App Store or developer account needed.
+
+**What's different from Forest:** you can **log time you forgot to track** (e.g. "1h of studying yesterday at 14:00"), and it counts in your stats and forest like any timed session.
+
+## Features
+
+- **Focus timer:** countdown (5–180 min) or stopwatch; your tree grows as you focus.
+- **Tags** to see where your time goes, and **12 tree species + 5 themes** to unlock with coins (1 coin per focused minute).
+- **Log or edit any session:** add forgotten time, fix mistakes, delete sessions.
+- **Forest view:** your trees by day, week, month or year.
+- **Stats:** total focus, comparison with the previous period, a chart per hour/day/month, time per tag, and your streak.
+- **Leaving the app:** a web app can't tell "locked the phone" from "opened Instagram", so you choose:
+  - **Off:** leaving never hurts.
+  - **Ask me** (default): after being away longer than the grace period, you're asked whether you were still focusing.
+  - **Strict:** away longer than N minutes and the tree withers.
+- **Import from Forest:** Forest's CSV export (Settings → Export data in Forest).
+- **Backups:** export everything as JSON (share sheet → Save to Files / iCloud Drive), and restore it later.
+
+## Data & persistence
+
+Everything lives in IndexedDB on the device. It survives closing the app, restarts and iOS updates. Home Screen apps are also exempt from Safari's 7-day storage cleanup, and the app requests persistent storage.
+
+It is **lost** if you delete the app from the Home Screen or wipe website data. So export a backup now and then; the app nudges you every 14 days. Cloud sync is planned for phase 2.
+
+The running timer is mirrored to `localStorage` so it survives iOS killing the app in the background.
+
+## Development
+
+```bash
+npm install
+npm run dev        # http://localhost:5173 (also on your LAN, see below)
+npm test           # unit tests (vitest)
+npm run build      # type-check + production build into dist/
+npm run preview    # serve the production build
+```
+
+**Try it on your iPhone before hosting:** with `npm run dev` running, open the "Network" URL Vite prints (e.g. `http://192.168.1.20:5173`) in Safari on a phone on the same Wi-Fi. Offline mode is disabled over plain HTTP, but everything else works. Data saved there stays with that address, so use Export/Restore to move it.
+
+## Installing on iPhone (once hosted)
+
+1. Open the site in **Safari**.
+2. Tap **Share → Add to Home Screen**.
+3. Launch it from the Home Screen icon. It opens full-screen, works offline, and updates itself.
+
+Hosting: `.github/workflows/deploy.yml` builds, tests and publishes to GitHub Pages on every push to `main`. Enable it under *Settings → Pages → Source: GitHub Actions*.
+
+## Code map
+
+| Path | What |
+|---|---|
+| `src/App.tsx` | Tabs, theme, and restoring a running session |
+| `src/components/Running.tsx` | The live timer: visibility tracking, check-in, completion |
+| `src/lib/penalty.ts` | Rules for time spent away from the app |
+| `src/lib/stats.ts` | Totals, chart buckets, tag breakdown, streak |
+| `src/lib/forestCsv.ts` | Lenient parser for Forest's CSV export |
+| `src/lib/backup.ts` | JSON backup/restore and Forest import |
+| `src/store.ts`, `src/db.ts` | Dexie (IndexedDB) schema, hooks and data actions |
+| `src/data/` | Tree species, themes, encouraging messages |
