@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // `base` is relative so the build works both at a domain root and under a
-// GitHub Pages sub-path (e.g. /better-forest/).
+// sub-path (e.g. /lesisko/).
 export default defineConfig({
   base: './',
   plugins: [
@@ -13,9 +13,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'Better Forest',
-        short_name: 'Forest',
-        description: 'Stay focused, grow trees.',
+        name: 'Lesisko',
+        short_name: 'Lesisko',
+        description: 'Grow your own forest, one focus session at a time.',
         theme_color: '#5b9a54',
         background_color: '#f4f1e4',
         display: 'standalone',

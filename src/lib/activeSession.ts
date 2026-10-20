@@ -2,7 +2,7 @@ import type { ActiveSession } from '../types'
 
 // The running session is kept in localStorage rather than IndexedDB because it is
 // written from `visibilitychange`, where iOS may suspend us before an async write lands.
-const KEY = 'better-forest.active'
+const KEY = 'lesisko.active'
 
 export function loadActive(): ActiveSession | null {
   try {

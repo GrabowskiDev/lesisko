@@ -217,7 +217,7 @@ export const pl: Messages = {
     manualCoins: 'Ręcznie dodany czas daje monety',
     manualCoinsHint: 'Dotyczy sesji dodanych lub edytowanych od teraz.',
     sound: 'Dźwięk, gdy drzewo wyrośnie',
-    footer: 'Better Forest · twoje dane zostają na tym urządzeniu',
+    footer: 'Lesisko · twoje dane zostają na tym urządzeniu',
   },
 
   deepFocus: {
@@ -232,7 +232,7 @@ export const pl: Messages = {
       },
       {
         title: 'Utwórz automatyzację',
-        body: 'Aplikacja Skróty → Automatyzacja → + → Aplikacja. Stuknij „Wybierz” i zaznacz wszystkie aplikacje, które chcesz blokować — możesz zaznaczyć wiele naraz. Pomiń ChatGPT, Gemini, Safari i Better Forest. Potem wybierz „Jest otwarta” i „Uruchom natychmiast”, a „Powiadom po uruchomieniu” wyłącz.',
+        body: 'Aplikacja Skróty → Automatyzacja → + → Aplikacja. Stuknij „Wybierz” i zaznacz wszystkie aplikacje, które chcesz blokować — możesz zaznaczyć wiele naraz. Pomiń ChatGPT, Gemini, Safari i Lesisko. Potem wybierz „Jest otwarta” i „Uruchom natychmiast”, a „Powiadom po uruchomieniu” wyłącz.',
       },
       {
         title: 'Dodaj czynności',
@@ -281,7 +281,7 @@ export const pl: Messages = {
     eraseConfirm: 'Usuń wszystko',
     restored: (n) => `Przywrócono ${n} ${p(n, 'sesję', 'sesje', 'sesji')}.`,
     errorInvalidJson: 'Ten plik nie jest poprawnym plikiem JSON.',
-    errorNotBackup: 'To nie wygląda na kopię zapasową Better Forest.',
+    errorNotBackup: 'To nie wygląda na kopię zapasową Lesiska.',
     restoreTitle: 'Przywrócić kopię?',
     restoreSummary: (date, sessions, tags) =>
       `Kopia z ${date}: ${sessions} ${p(sessions, 'sesja', 'sesje', 'sesji')} i ${tags} ${p(tags, 'tag', 'tagi', 'tagów')}.`,

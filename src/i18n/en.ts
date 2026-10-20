@@ -225,7 +225,7 @@ export const en = {
     manualCoins: 'Logged time earns coins',
     manualCoinsHint: 'Applies to sessions you add or edit from now on.',
     sound: 'Sound when a tree is done',
-    footer: 'Better Forest · your data stays on this device',
+    footer: 'Lesisko · your data stays on this device',
   },
 
   deepFocus: {
@@ -240,7 +240,7 @@ export const en = {
       },
       {
         title: 'Create the automation',
-        body: 'Shortcuts app → Automation → + → App. Tap Choose and select every app you want blocked — you can pick many at once. Leave out ChatGPT, Gemini, Safari and Better Forest. Then pick “Is Opened” and “Run Immediately”, and turn off “Notify When Run”.',
+        body: 'Shortcuts app → Automation → + → App. Tap Choose and select every app you want blocked — you can pick many at once. Leave out ChatGPT, Gemini, Safari and Lesisko. Then pick “Is Opened” and “Run Immediately”, and turn off “Notify When Run”.',
       },
       {
         title: 'Add the actions',
@@ -289,7 +289,7 @@ export const en = {
     eraseConfirm: 'Erase everything',
     restored: (n: number) => `Restored ${n} ${p(n, 'session', 'sessions')}.`,
     errorInvalidJson: 'This file isn’t valid JSON.',
-    errorNotBackup: 'This doesn’t look like a Better Forest backup.',
+    errorNotBackup: 'This doesn’t look like a Lesisko backup.',
     restoreTitle: 'Restore backup?',
     restoreSummary: (date: string, sessions: number, tags: number) =>
       `Backup from ${date} with ${sessions} ${p(sessions, 'session', 'sessions')} and ${tags} ${p(tags, 'tag', 'tags')}.`,

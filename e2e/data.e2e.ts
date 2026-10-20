@@ -22,7 +22,7 @@ test.describe('your data', () => {
 
     await tab(app, 'Settings')
     const [download] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export backup' }).click()])
-    expect(download.suggestedFilename()).toBe('better-forest-2026-10-20.json')
+    expect(download.suggestedFilename()).toBe('lesisko-2026-10-20.json')
     const file = await download.path()
     const backup = JSON.parse(await readFile(file, 'utf8'))
     expect(backup.sessions).toHaveLength(2)
@@ -54,13 +54,13 @@ test.describe('your data', () => {
     await tab(app, 'Settings')
     await app.getByRole('button', { name: 'Export backup' }).click()
     await expect.poll(() => app.evaluate(() => (window as unknown as { shared: { name: string }[] }).shared.map((f) => f.name)))
-      .toEqual(['better-forest-2026-10-20.json'])
+      .toEqual(['lesisko-2026-10-20.json'])
   })
 
   test('a non-backup file is refused politely', async ({ app }) => {
     await tab(app, 'Settings')
     await app.locator('input[type=file][accept*=json]').setInputFiles({ name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"a":1}') })
-    await expect(app.getByText('This doesn’t look like a Better Forest backup.')).toBeVisible()
+    await expect(app.getByText('This doesn’t look like a Lesisko backup.')).toBeVisible()
   })
 
   test('Forest CSV import previews, imports, and never duplicates', async ({ app }) => {

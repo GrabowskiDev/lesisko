@@ -1,4 +1,6 @@
-# Better Forest 🌳
+# Lesisko 🌳
+
+*Grow your own forest, one focus session at a time.* (Polish: *lesisko*, a big, wild forest.)
 
 A cozy, Forest-style focus timer that runs as an installable web app (PWA) on iPhone — no App Store or developer account needed.
 

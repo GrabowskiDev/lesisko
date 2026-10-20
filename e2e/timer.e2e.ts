@@ -113,7 +113,7 @@ test.describe('focus timer', () => {
     await app.getByRole('dialog', { name: 'Give up on this tree?' }).getByRole('button', { name: 'Give up' }).click()
     await expect(app.getByRole('alert')).toHaveText('Couldn’t save this session. Please try again.')
     await expect(app.locator('.clock')).toBeVisible()
-    expect(await app.evaluate(() => localStorage.getItem('better-forest.active'))).not.toBeNull()
+    expect(await app.evaluate(() => localStorage.getItem('lesisko.active'))).not.toBeNull()
   })
 
   test('a running tree without a tag can be given one', async ({ app }) => {

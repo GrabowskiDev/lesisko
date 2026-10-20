@@ -183,7 +183,7 @@ function DataSection({ settings }: { settings: Settings }) {
   const exportBackup = async () => {
     const data = await createBackup()
     // The file name stays ASCII and language-neutral so backups sort the same everywhere.
-    await shareOrDownload(`better-forest-${format(Date.now(), 'yyyy-MM-dd')}.json`, JSON.stringify(data, null, 2), 'application/json')
+    await shareOrDownload(`lesisko-${format(Date.now(), 'yyyy-MM-dd')}.json`, JSON.stringify(data, null, 2), 'application/json')
     await updateSettings({ lastBackupAt: Date.now() })
   }
 

@@ -7,7 +7,7 @@ interface KV {
   value: unknown
 }
 
-export const db = new Dexie('better-forest') as Dexie & {
+export const db = new Dexie('lesisko') as Dexie & {
   sessions: EntityTable<Session, 'id'>
   tags: EntityTable<Tag, 'id'>
   purchases: EntityTable<Purchase, 'itemId'>

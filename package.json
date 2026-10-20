@@ -1,7 +1,7 @@
 {
-  "name": "better-forest",
+  "name": "lesisko",
   "version": "1.0.0",
-  "description": "A cozy Forest-style focus timer PWA with manual session entry",
+  "description": "Lesisko: a cozy focus timer PWA that grows a forest, with manual session entry",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",

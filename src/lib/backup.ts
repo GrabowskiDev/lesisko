@@ -8,7 +8,7 @@ import type { ForestRow } from './forestCsv'
 import type { Purchase, Session, Settings, Tag } from '../types'
 
 export interface Backup {
-  app: 'better-forest'
+  app: 'lesisko'
   version: 1
   exportedAt: number
   sessions: Session[]
@@ -20,7 +20,7 @@ export interface Backup {
 
 export async function createBackup(): Promise<Backup> {
   return {
-    app: 'better-forest',
+    app: 'lesisko',
     version: 1,
     exportedAt: Date.now(),
     sessions: await db.sessions.toArray(),
@@ -44,7 +44,7 @@ export function parseBackup(text: string): Backup {
     throw new BackupError('invalidJson')
   }
   const b = data as Partial<Backup>
-  if (b?.app !== 'better-forest' || !Array.isArray(b.sessions) || !Array.isArray(b.tags)) {
+  if (b?.app !== 'lesisko' || !Array.isArray(b.sessions) || !Array.isArray(b.tags)) {
     throw new BackupError('notBackup')
   }
   return { ...b, purchases: b.purchases ?? [] } as Backup
