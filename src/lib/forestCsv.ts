@@ -11,9 +11,16 @@ export interface ForestRow {
   success: boolean
 }
 
+/** Why a row (or the whole file) couldn't be read; turned into text by the UI. */
+export type ForestRowError =
+  | { kind: 'empty' }
+  | { kind: 'columns'; header: string }
+  | { kind: 'date'; value: string }
+  | { kind: 'order' }
+
 export interface ForestParseResult {
   rows: ForestRow[]
-  errors: { line: number; reason: string }[]
+  errors: { line: number; error: ForestRowError }[]
 }
 
 /** Minimal RFC 4180 CSV parser: quoted fields, escaped quotes, CRLF. */
@@ -147,7 +154,7 @@ function detectSlashOrder(values: string[]): SlashOrder {
 export function parseForestCsv(text: string): ForestParseResult {
   const table = parseCsv(text)
   const errors: ForestParseResult['errors'] = []
-  if (table.length === 0) return { rows: [], errors: [{ line: 1, reason: 'The file is empty.' }] }
+  if (table.length === 0) return { rows: [], errors: [{ line: 1, error: { kind: 'empty' } }] }
 
   const header = table[0]
   const col = {
@@ -162,7 +169,7 @@ export function parseForestCsv(text: string): ForestParseResult {
   if (col.start < 0 || (col.end < 0 && col.duration < 0)) {
     return {
       rows: [],
-      errors: [{ line: 1, reason: `Couldn't find start/end columns. Header was: ${header.join(', ')}` }],
+      errors: [{ line: 1, error: { kind: 'columns', header: header.join(', ') } }],
     }
   }
 
@@ -180,11 +187,11 @@ export function parseForestCsv(text: string): ForestParseResult {
       if (Number.isFinite(minutes)) end = start + minutes * 60_000
     }
     if (Number.isNaN(start) || Number.isNaN(end)) {
-      errors.push({ line, reason: `Unreadable date "${cell(r, col.start)}"` })
+      errors.push({ line, error: { kind: 'date', value: cell(r, Number.isNaN(start) ? col.start : col.end) } })
       return
     }
     if (end <= start) {
-      errors.push({ line, reason: 'End time is not after start time' })
+      errors.push({ line, error: { kind: 'order' } })
       return
     }
     rows.push({

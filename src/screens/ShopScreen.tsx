@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { SPECIES, type Species } from '../data/species'
 import { THEMES, type Theme } from '../data/themes'
 import { updateSettings } from '../db'
+import { useI18n } from '../i18n'
 import { buy, NotEnoughCoins, useCoins, useOwns, useSettings } from '../store'
 import { Tree } from '../components/Tree'
 import { CoinIcon, Segmented, Sheet } from '../components/ui'
@@ -9,6 +10,7 @@ import { CoinIcon, Segmented, Sheet } from '../components/ui'
 type Item = { kind: 'tree'; item: Species } | { kind: 'theme'; item: Theme }
 
 export function ShopScreen() {
+  const { t: { shop: t, species, themes }, number } = useI18n()
   const coins = useCoins()
   const owns = useOwns()
   const settings = useSettings()
@@ -26,9 +28,11 @@ export function ShopScreen() {
       await equip(buying)
       setBuying(null)
     } catch (e) {
-      setError(e instanceof NotEnoughCoins ? 'Not enough coins yet — keep focusing!' : String(e))
+      setError(e instanceof NotEnoughCoins ? t.notEnough : String(e))
     }
   }
+
+  const nameOf = (it: Item) => (it.kind === 'tree' ? species[it.item.id].name : themes[it.item.id])
 
   const card = (it: Item) => {
     const { item } = it
@@ -45,13 +49,13 @@ export function ShopScreen() {
         ) : (
           <ThemeSwatch theme={it.item} />
         )}
-        <strong>{item.name}</strong>
+        <strong>{nameOf(it)}</strong>
         {equipped ? (
-          <span className="shop-state">In use</span>
+          <span className="shop-state">{t.inUse}</span>
         ) : owned ? (
-          <span className="shop-state owned">Owned · tap to use</span>
+          <span className="shop-state owned">{t.owned}</span>
         ) : (
-          <span className={`price${coins >= item.price ? '' : ' locked'}`}><CoinIcon size={14} /> {item.price}</span>
+          <span className={`price${coins >= item.price ? '' : ' locked'}`}><CoinIcon size={14} /> {number(item.price)}</span>
         )}
       </button>
     )
@@ -60,16 +64,16 @@ export function ShopScreen() {
   return (
     <div className="screen">
       <header className="top-bar">
-        <h1>Shop</h1>
+        <h1>{t.title}</h1>
       </header>
 
       <section className="hero card">
-        <span className="label">Your coins</span>
-        <strong className="hero-number"><CoinIcon size={30} /> {coins.toLocaleString()}</strong>
-        <span className="hint">You earn 1 coin for every minute of focus.</span>
+        <span className="label">{t.yourCoins}</span>
+        <strong className="hero-number"><CoinIcon size={30} /> {number(coins)}</strong>
+        <span className="hint">{t.earnHint}</span>
       </section>
 
-      <Segmented value={tab} onChange={setTab} options={[{ value: 'trees', label: 'Trees' }, { value: 'themes', label: 'Themes' }]} />
+      <Segmented value={tab} onChange={setTab} options={[{ value: 'trees', label: t.trees }, { value: 'themes', label: t.themes }]} />
 
       <div className="shop-grid">
         {tab === 'trees'
@@ -77,22 +81,23 @@ export function ShopScreen() {
           : THEMES.map((t) => card({ kind: 'theme', item: t }))}
       </div>
 
-      <Sheet open={buying != null} onClose={() => setBuying(null)} title={buying ? `Unlock ${buying.item.name}?` : undefined}>
+      <Sheet open={buying != null} onClose={() => setBuying(null)} title={buying?.kind === 'theme' ? t.unlockTheme : t.unlockTree}>
         {buying && (
           <div className="buy-sheet">
             {buying.kind === 'tree' ? <Tree species={buying.item} size={120} /> : <ThemeSwatch theme={buying.item} large />}
-            {buying.kind === 'tree' && <p className="hint center">{buying.item.blurb}</p>}
+            <strong className="buy-name">{nameOf(buying)}</strong>
+            {buying.kind === 'tree' && <p className="hint center">{species[buying.item.id].blurb}</p>}
             <p className="center">
-              Costs <strong><CoinIcon size={14} /> {buying.item.price}</strong> · you have {coins.toLocaleString()}
+              {t.costs} <strong><CoinIcon size={14} /> {number(buying.item.price)}</strong> · {t.youHave(number(coins))}
             </p>
             {coins < buying.item.price && (
               <p className="hint center">
-                {buying.item.price - coins} more coins — about {Math.ceil((buying.item.price - coins) / 60)}h of focus.
+                {t.missing(buying.item.price - coins, Math.ceil((buying.item.price - coins) / 60))}
               </p>
             )}
             {error && <p className="warning">{error}</p>}
             <button className="btn primary block" disabled={coins < buying.item.price} onClick={() => void confirm()}>
-              Unlock
+              {t.unlock}
             </button>
           </div>
         )}

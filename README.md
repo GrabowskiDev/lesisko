@@ -15,6 +15,8 @@ A cozy, Forest-style focus timer that runs as an installable web app (PWA) on iP
   - **Off:** leaving never hurts.
   - **Ask me** (default): after being away longer than the grace period, you're asked whether you were still focusing.
   - **Strict:** away longer than N minutes and the tree withers.
+- **Block distracting apps:** a step-by-step guide in Settings for setting up an iOS Focus mode plus a Shortcuts automation that sends you back to the Home Screen when you open a blocked app. A web app can't block other apps itself.
+- **English and Polish:** picked automatically from the phone's language, and switchable in Settings.
 - **Import from Forest:** Forest's CSV export (Settings → Export data in Forest).
 - **Backups:** export everything as JSON (share sheet → Save to Files / iCloud Drive), and restore it later.
 
@@ -25,6 +27,17 @@ Everything lives in IndexedDB on the device. It survives closing the app, restar
 It is **lost** if you delete the app from the Home Screen or wipe website data. So export a backup now and then; the app nudges you every 14 days. Cloud sync is planned for phase 2.
 
 The running timer is mirrored to `localStorage` so it survives iOS killing the app in the background.
+
+## Translations
+
+All text lives in `src/i18n/en.ts` and `src/i18n/pl.ts`. Components read it via `useI18n()`, which also provides locale-aware `date()`, `duration()` and `number()`.
+
+- `pl` is typed as `Messages` (the shape of `en`), so a missing or misnamed key fails the type-check.
+- A test also checks that list lengths match and every message renders.
+- Messages with numbers are functions, so each language handles its own plurals. Polish has three forms (1 drzewo, 2 drzewa, 5 drzew) via `pluralPl`.
+- Wording in Polish avoids gendered verb forms.
+
+To add a language: create `src/i18n/xx.ts` typed as `Messages`, then register it in `DICTIONARIES`, `DATE_LOCALES` and `LANGUAGES` in `src/i18n/index.tsx`, and in the `Language` type.
 
 ## Development
 
@@ -57,4 +70,5 @@ Hosting: `.github/workflows/deploy.yml` builds, tests and publishes to GitHub Pa
 | `src/lib/forestCsv.ts` | Lenient parser for Forest's CSV export |
 | `src/lib/backup.ts` | JSON backup/restore and Forest import |
 | `src/store.ts`, `src/db.ts` | Dexie (IndexedDB) schema, hooks and data actions |
-| `src/data/` | Tree species, themes, encouraging messages |
+| `src/i18n/` | Translations (`en.ts` defines the shape, `pl.ts` must match it), plural rules, date/number formatting |
+| `src/data/` | Tree species and themes (their names live in `src/i18n/`) |

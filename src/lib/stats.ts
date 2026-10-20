@@ -1,4 +1,4 @@
-import { addDays, addHours, addMonths, format, startOfDay } from 'date-fns'
+import { addDays, addHours, addMonths, startOfDay } from 'date-fns'
 import { periodRange, type Period, type Range } from './time'
 import type { Session } from '../types'
 
@@ -24,9 +24,6 @@ export function sessionsInRange(sessions: Session[], range: Range): Session[] {
 }
 
 export interface Bucket extends Range {
-  label: string
-  /** Longer label for tooltips. */
-  title: string
   ms: number
 }
 
@@ -41,19 +38,7 @@ export function buckets(period: Period, anchor: Date, sessions: Session[]): Buck
       : period === 'year' ? addMonths(cursor, 1)
       : addDays(cursor, 1)
     const range = { start: +cursor, end: +next }
-    out.push({
-      ...range,
-      label:
-        period === 'day' ? format(cursor, 'H')
-        : period === 'week' ? format(cursor, 'EEEEE')
-        : period === 'month' ? format(cursor, 'd')
-        : format(cursor, 'MMMMM'),
-      title:
-        period === 'day' ? `${format(cursor, 'HH:00')}–${format(next, 'HH:00')}`
-        : period === 'year' ? format(cursor, 'MMMM yyyy')
-        : format(cursor, 'EEE, d MMM'),
-      ms: totalFocus(sessions, range),
-    })
+    out.push({ ...range, ms: totalFocus(sessions, range) })
     cursor = next
   }
   return out

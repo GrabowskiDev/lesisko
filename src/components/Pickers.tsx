@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { SPECIES } from '../data/species'
+import { useI18n } from '../i18n'
 import { createTag, tagColor, useDark, useOwns, useTags } from '../store'
 import { Tree } from './Tree'
 import { Icon, Sheet } from './ui'
@@ -11,10 +12,11 @@ export function TagDot({ tag }: { tag: Tag | undefined }) {
 }
 
 export function TagChip({ tag, onClick }: { tag: Tag | undefined; onClick?: () => void }) {
+  const { t } = useI18n()
   return (
     <button type="button" className="chip" onClick={onClick}>
       <TagDot tag={tag} />
-      {tag?.name ?? 'No tag'}
+      {tag?.name ?? t.common.noTag}
     </button>
   )
 }
@@ -24,6 +26,7 @@ export function TagPicker({ value, onChange }: {
   value: string | null
   onChange: (id: string | null) => void
 }) {
+  const { t } = useI18n()
   const tags = useTags()
   const [adding, setAdding] = useState(false)
   const [name, setName] = useState('')
@@ -39,21 +42,21 @@ export function TagPicker({ value, onChange }: {
   return (
     <div className="chip-row">
       <button type="button" className={`chip${value === null ? ' selected' : ''}`} onClick={() => onChange(null)}>
-        <TagDot tag={undefined} /> No tag
+        <TagDot tag={undefined} /> {t.common.noTag}
       </button>
-      {tags.map((t) => (
-        <button type="button" key={t.id} className={`chip${value === t.id ? ' selected' : ''}`} onClick={() => onChange(t.id)}>
-          <TagDot tag={t} /> {t.name}
+      {tags.map((tag) => (
+        <button type="button" key={tag.id} className={`chip${value === tag.id ? ' selected' : ''}`} onClick={() => onChange(tag.id)}>
+          <TagDot tag={tag} /> {tag.name}
         </button>
       ))}
       {adding ? (
         <form className="chip-input" onSubmit={(e) => { e.preventDefault(); void add() }}>
-          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Tag name" maxLength={24} onBlur={() => !name && setAdding(false)} />
-          <button type="submit" className="chip selected">Add</button>
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t.pickers.tagPlaceholder} maxLength={24} onBlur={() => !name && setAdding(false)} />
+          <button type="submit" className="chip selected">{t.common.add}</button>
         </form>
       ) : (
         <button type="button" className="chip ghost" onClick={() => setAdding(true)}>
-          <Icon name="plus" size={14} /> New tag
+          <Icon name="plus" size={14} /> {t.pickers.newTag}
         </button>
       )}
     </div>
@@ -66,8 +69,9 @@ export function TagSheet({ open, onClose, value, onChange }: {
   value: string | null
   onChange: (id: string | null) => void
 }) {
+  const { t } = useI18n()
   return (
-    <Sheet open={open} onClose={onClose} title="What are you focusing on?">
+    <Sheet open={open} onClose={onClose} title={t.pickers.tagSheetTitle}>
       <TagPicker value={value} onChange={(id) => { onChange(id); onClose() }} />
     </Sheet>
   )
@@ -75,13 +79,14 @@ export function TagSheet({ open, onClose, value, onChange }: {
 
 /** Grid of owned tree species. */
 export function SpeciesPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const { t } = useI18n()
   const owns = useOwns()
   return (
     <div className="species-grid">
       {SPECIES.filter(owns).map((s) => (
         <button type="button" key={s.id} className={`species-option${s.id === value ? ' selected' : ''}`} onClick={() => onChange(s.id)}>
           <Tree species={s} size={52} />
-          <span>{s.name}</span>
+          <span>{t.species[s.id].name}</span>
         </button>
       ))}
     </div>
@@ -94,10 +99,11 @@ export function SpeciesSheet({ open, onClose, value, onChange }: {
   value: string
   onChange: (id: string) => void
 }) {
+  const { t } = useI18n()
   return (
-    <Sheet open={open} onClose={onClose} title="Choose your tree">
+    <Sheet open={open} onClose={onClose} title={t.pickers.treeSheetTitle}>
       <SpeciesPicker value={value} onChange={(id) => { onChange(id); onClose() }} />
-      <p className="hint center">Unlock more trees in the shop with the coins you earn.</p>
+      <p className="hint center">{t.pickers.unlockMore}</p>
     </Sheet>
   )
 }

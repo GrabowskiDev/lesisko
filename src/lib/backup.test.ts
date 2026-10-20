@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../db'
-import { createBackup, importForestRows, parseBackup, restoreBackup } from './backup'
+import { BackupError, createBackup, importForestRows, parseBackup, restoreBackup } from './backup'
 
 const row = (h: number, tag: string | null, success = true) => ({
   start: +new Date(2026, 0, 1, h),
@@ -51,7 +51,7 @@ describe('backup round trip', () => {
   })
 
   it('rejects files that are not backups', () => {
-    expect(() => parseBackup('{"hello":1}')).toThrow(/backup/)
-    expect(() => parseBackup('nope')).toThrow(/JSON/)
+    expect(() => parseBackup('{"hello":1}')).toThrow(new BackupError('notBackup'))
+    expect(() => parseBackup('nope')).toThrow(new BackupError('invalidJson'))
   })
 })

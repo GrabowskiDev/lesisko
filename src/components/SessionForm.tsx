@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useI18n } from '../i18n'
 import { deleteSession, saveSession, useSessions, useSettings } from '../store'
-import { formatDuration, formatTime, fromDateTimeInputs, MINUTE, toDateInput, toTimeInput } from '../lib/time'
+import { formatTime, fromDateTimeInputs, MINUTE, toDateInput, toTimeInput } from '../lib/time'
 import { SpeciesPicker, TagPicker } from './Pickers'
 import { Sheet, Toggle } from './ui'
 import type { Session } from '../types'
@@ -14,8 +15,9 @@ export function SessionSheet({ open, onClose, session }: {
   /** Existing session to edit; omit to add a manual one. */
   session?: Session
 }) {
+  const { t } = useI18n()
   return (
-    <Sheet open={open} onClose={onClose} title={session ? 'Edit session' : 'Log focus time'}>
+    <Sheet open={open} onClose={onClose} title={session ? t.sessionForm.editTitle : t.sessionForm.addTitle}>
       {/* Remount per session so the form state starts fresh. */}
       {open && <SessionForm key={session?.id ?? 'new'} session={session} onDone={onClose} />}
     </Sheet>
@@ -23,6 +25,7 @@ export function SessionSheet({ open, onClose, session }: {
 }
 
 function SessionForm({ session, onDone }: { session?: Session; onDone: () => void }) {
+  const { t: { sessionForm: t }, duration } = useI18n()
   const settings = useSettings()
   const sessions = useSessions()
   const initial = useMemo(() => {
@@ -47,10 +50,10 @@ function SessionForm({ session, onDone }: { session?: Session; onDone: () => voi
   const end = start + totalMinutes * MINUTE
 
   const error =
-    Number.isNaN(start) ? 'Pick a date and start time.'
-    : totalMinutes <= 0 ? 'Duration must be more than 0 minutes.'
-    : totalMinutes > 16 * 60 ? 'That’s more than 16 hours — split it into a few sessions.'
-    : end > Date.now() + MINUTE ? 'This session would end in the future.'
+    Number.isNaN(start) ? t.errorNoDate
+    : totalMinutes <= 0 ? t.errorZero
+    : totalMinutes > 16 * 60 ? t.errorTooLong
+    : end > Date.now() + MINUTE ? t.errorFuture
     : null
 
   const overlapping = error
@@ -86,84 +89,84 @@ function SessionForm({ session, onDone }: { session?: Session; onDone: () => voi
   return (
     <form className="form" onSubmit={(e) => { e.preventDefault(); void save() }}>
       {!session && (
-        <p className="hint">Studied without the timer? Add it here and it counts in your stats and forest just like a timed session.</p>
+        <p className="hint">{t.intro}</p>
       )}
 
       <div className="field-row">
         <label className="field">
-          <span>Date</span>
+          <span>{t.date}</span>
           <input type="date" value={date} max={toDateInput(Date.now())} onChange={(e) => setDate(e.target.value)} />
         </label>
         <label className="field">
-          <span>Started at</span>
+          <span>{t.startedAt}</span>
           <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
         </label>
       </div>
 
       <div className="field">
-        <span>Duration</span>
+        <span>{t.duration}</span>
         <div className="chip-row">
           {QUICK.map((m) => (
             <button type="button" key={m} className={`chip${m === totalMinutes ? ' selected' : ''}`} onClick={() => setQuick(m)}>
-              {formatDuration(m * MINUTE)}
+              {duration(m * MINUTE)}
             </button>
           ))}
         </div>
         <div className="field-row duration">
-          <select value={hours} onChange={(e) => setHours(Number(e.target.value))} aria-label="Hours">
-            {Array.from({ length: 17 }, (_, h) => <option key={h} value={h}>{h} h</option>)}
+          <select value={hours} onChange={(e) => setHours(Number(e.target.value))} aria-label={t.hoursLabel}>
+            {Array.from({ length: 17 }, (_, h) => <option key={h} value={h}>{t.hoursOption(h)}</option>)}
           </select>
-          <select value={mins} onChange={(e) => setMins(Number(e.target.value))} aria-label="Minutes">
-            {Array.from({ length: 60 }, (_, m) => <option key={m} value={m}>{m} min</option>)}
+          <select value={mins} onChange={(e) => setMins(Number(e.target.value))} aria-label={t.minutesLabel}>
+            {Array.from({ length: 60 }, (_, m) => <option key={m} value={m}>{t.minutesOption(m)}</option>)}
           </select>
         </div>
         {!error && <span className="hint">{formatTime(start)} – {formatTime(end)}</span>}
       </div>
 
       <div className="field">
-        <span>Tag</span>
+        <span>{t.tag}</span>
         <TagPicker value={tagId} onChange={setTagId} />
       </div>
 
       <div className="field">
-        <span>Tree</span>
+        <span>{t.tree}</span>
         <SpeciesPicker value={speciesId} onChange={setSpeciesId} />
       </div>
 
       <label className="field">
-        <span>Note</span>
-        <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional — e.g. Chapter 4 exercises" maxLength={200} />
+        <span>{t.note}</span>
+        <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t.notePlaceholder} maxLength={200} />
       </label>
 
       {session && (
         <div className="setting-row">
           <div>
-            <strong>Tree survived</strong>
-            <p className="hint">Withered trees don’t count towards focus time or coins.</p>
+            <strong>{t.survived}</strong>
+            <p className="hint">{t.survivedHint}</p>
           </div>
-          <Toggle checked={survived} onChange={setSurvived} label="Tree survived" />
+          <Toggle checked={survived} onChange={setSurvived} label={t.survived} />
         </div>
       )}
 
       {overlapping.length > 0 && (
         <p className="warning">
-          Heads up: this overlaps {overlapping.length === 1 ? 'another session' : `${overlapping.length} other sessions`} ({overlapping.map((s) => `${formatTime(s.start)}–${formatTime(s.end)}`).join(', ')}). Both will count.
+          {t.overlap(overlapping.length, overlapping.map((s) => `${formatTime(s.start)}–${formatTime(s.end)}`).join(', '))}
         </p>
       )}
       {error && <p className="warning">{error}</p>}
 
       <button type="submit" className="btn primary block" disabled={!!error}>
-        {session ? 'Save changes' : `Add ${totalMinutes > 0 ? formatDuration(totalMinutes * MINUTE) : 'session'}`}
+        {session ? t.save : totalMinutes > 0 ? t.addDuration(duration(totalMinutes * MINUTE)) : t.addSession}
       </button>
 
       {session && (
         confirmDelete ? (
           <div className="field-row">
-            <button type="button" className="btn block" onClick={() => setConfirmDelete(false)}>Keep it</button>
-            <button type="button" className="btn danger block" onClick={() => void remove()}>Delete for good</button>
+            <button type="button" className="btn block" onClick={() => setConfirmDelete(false)}>{t.keepIt}</button>
+            <button type="button" className="btn danger block" onClick={() => void remove()}>{t.deleteForGood}</button>
           </div>
         ) : (
-          <button type="button" className="btn ghost danger-text block" onClick={() => setConfirmDelete(true)}>Delete session</button>
+          <button type="button" className="btn ghost danger-text block" onClick={() => setConfirmDelete(true)}>{t.deleteSession}</button>
         )
       )}
     </form>

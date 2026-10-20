@@ -60,7 +60,7 @@ describe('parseForestCsv', () => {
       success: true,
     })
     expect(rows[1]).toMatchObject({ tag: null, success: false })
-    expect(errors).toEqual([{ line: 4, reason: 'Unreadable date "garbage"' }])
+    expect(errors).toEqual([{ line: 4, error: { kind: 'date', value: 'garbage' } }])
   })
 
   it('detects day-first slash dates from the file', () => {
@@ -76,6 +76,6 @@ describe('parseForestCsv', () => {
   it('reports a missing start column', () => {
     const { rows, errors } = parseForestCsv('foo,bar\n1,2')
     expect(rows).toEqual([])
-    expect(errors[0].reason).toMatch(/start\/end/)
+    expect(errors[0].error).toEqual({ kind: 'columns', header: 'foo, bar' })
   })
 })

@@ -1,23 +1,18 @@
 import { useState } from 'react'
-import { format, startOfDay } from 'date-fns'
+import { startOfDay } from 'date-fns'
 import { getSpecies } from '../data/species'
+import { useI18n } from '../i18n'
 import { focusMs, sessionsInRange, totalFocus } from '../lib/stats'
-import { formatDuration, formatTime, HOUR, periodRange, shiftAnchor, type Period } from '../lib/time'
+import { formatTime, HOUR, periodRange, shiftAnchor, type Period } from '../lib/time'
 import { useSessions, useTags } from '../store'
 import { SessionSheet } from '../components/SessionForm'
 import { TagDot } from '../components/Pickers'
 import { Tree } from '../components/Tree'
-import { Icon, PERIOD_OPTIONS, PeriodNav, Segmented } from '../components/ui'
+import { Icon, PeriodNav, PeriodTabs } from '../components/ui'
 import type { Session } from '../types'
 
 /** Rendering hundreds of SVG trees gets slow on phones; past this we summarise. */
 const MAX_TREES = 200
-
-const SOURCE_LABEL: Record<Session['source'], string | null> = {
-  timer: null,
-  manual: 'logged',
-  import: 'imported',
-}
 
 /** Longer sessions grow bigger trees in the forest view. */
 function treeScale(s: Session): number {
@@ -26,6 +21,7 @@ function treeScale(s: Session): number {
 }
 
 export function ForestScreen() {
+  const { t: { forest: t }, duration, date, cap } = useI18n()
   const sessions = useSessions()
   const tags = useTags()
   const [period, setPeriod] = useState<Period>('day')
@@ -48,50 +44,50 @@ export function ForestScreen() {
   return (
     <div className="screen">
       <header className="top-bar">
-        <h1>My Forest</h1>
+        <h1>{t.title}</h1>
       </header>
 
-      <Segmented value={period} options={PERIOD_OPTIONS} onChange={setPeriod} />
+      <PeriodTabs value={period} onChange={setPeriod} />
       <PeriodNav period={period} anchor={anchor} onShift={(d) => setAnchor(shiftAnchor(period, anchor, d))} onReset={() => setAnchor(new Date())} />
 
-      <section className="ground" aria-label="Trees planted in this period">
+      <section className="ground" aria-label={t.groundLabel}>
         {visible.length === 0 ? (
           <div className="ground-empty">
             <Tree species={getSpecies('oak')} growth={0.05} size={70} />
-            <p>No trees here yet. Plant one, or log time you forgot to track.</p>
+            <p>{t.empty}</p>
           </div>
         ) : (
           <div className="ground-grid">
             {shown.map((s) => (
-              <button key={s.id} className="ground-tree" onClick={() => setEditing(s)} aria-label={`${formatDuration(s.end - s.start)} session`}>
+              <button key={s.id} className="ground-tree" onClick={() => setEditing(s)} aria-label={t.sessionLabel(duration(s.end - s.start))}>
                 <Tree species={getSpecies(s.speciesId)} withered={s.status === 'withered'} size={`${treeScale(s) * 100}%`} />
-                {s.source === 'manual' && <span className="manual-mark" title="Logged manually"><Icon name="pencil" size={9} /></span>}
+                {s.source === 'manual' && <span className="manual-mark" title={t.manualMark}><Icon name="pencil" size={9} /></span>}
               </button>
             ))}
           </div>
         )}
-        {visible.length > MAX_TREES && <p className="hint center">+ {visible.length - MAX_TREES} more trees</p>}
+        {visible.length > MAX_TREES && <p className="hint center">{t.more(visible.length - MAX_TREES)}</p>}
       </section>
 
       <p className="forest-summary">
-        <strong>{alive.length}</strong> tree{alive.length === 1 ? '' : 's'} · <strong>{formatDuration(total)}</strong> focused
-        {visible.length > alive.length && <> · {visible.length - alive.length} withered</>}
+        <strong>{t.trees(alive.length)}</strong> · <strong>{duration(total)}</strong> {t.focused}
+        {visible.length > alive.length && <> · {t.withered(visible.length - alive.length)}</>}
       </p>
 
       <section className="session-list">
         {[...byDay].map(([day, list]) => (
           <div key={day} className="day-group">
             <h3>
-              {format(day, 'EEEE, d MMM')}
-              <span>{formatDuration(list.reduce((sum, s) => sum + focusMs(s), 0))}</span>
+              {cap(date(day, 'EEEE, d MMM'))}
+              <span>{duration(list.reduce((sum, s) => sum + focusMs(s), 0))}</span>
             </h3>
             {list.map((s) => {
-              const tag = tags.find((t) => t.id === s.tagId)
+              const tag = tags.find((tg) => tg.id === s.tagId)
               return (
                 <button key={s.id} className="session-row" onClick={() => setEditing(s)}>
                   <Tree species={getSpecies(s.speciesId)} withered={s.status === 'withered'} size={34} />
                   <div className="session-info">
-                    <strong>{formatDuration(s.end - s.start)}</strong>
+                    <strong>{duration(s.end - s.start)}</strong>
                     <span className="hint">
                       {formatTime(s.start)} – {formatTime(s.end)}
                       {s.note && ` · ${s.note}`}
@@ -99,7 +95,7 @@ export function ForestScreen() {
                   </div>
                   <div className="session-meta">
                     {tag && <span className="mini-tag"><TagDot tag={tag} /> {tag.name}</span>}
-                    {SOURCE_LABEL[s.source] && <span className="source-badge">{SOURCE_LABEL[s.source]}</span>}
+                    {t.source[s.source] && <span className="source-badge">{t.source[s.source]}</span>}
                   </div>
                 </button>
               )
@@ -108,7 +104,7 @@ export function ForestScreen() {
         ))}
       </section>
 
-      <button className="fab" onClick={() => setAdding(true)} aria-label="Log focus time">
+      <button className="fab" onClick={() => setAdding(true)} aria-label={t.logTime}>
         <Icon name="plus" size={26} />
       </button>
 

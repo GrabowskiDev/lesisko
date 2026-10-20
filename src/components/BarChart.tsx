@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { formatDuration, HOUR, MINUTE, type Period } from '../lib/time'
+import { useI18n, type I18n } from '../i18n'
+import { HOUR, MINUTE, type Period } from '../lib/time'
 import type { Bucket } from '../lib/stats'
 
 const W = 340
 const H = 170
-const PAD = { top: 8, right: 4, bottom: 22, left: 30 }
+const PAD = { top: 8, right: 4, bottom: 22, left: 38 }
 
 /** Picks a round axis maximum (in ms) at or above the largest bucket. */
 function niceMax(maxMs: number): number {
@@ -14,9 +15,14 @@ function niceMax(maxMs: number): number {
   return Math.ceil(maxMs / (100 * HOUR)) * 100 * HOUR
 }
 
-function axisLabel(ms: number): string {
-  if (ms === 0) return '0'
-  return ms < HOUR ? `${Math.round(ms / MINUTE)}m` : `${+(ms / HOUR).toFixed(1)}h`
+/** Tick label under a bar, and the longer title shown when it's tapped. */
+function bucketText(period: Period, b: Bucket, { date, cap }: I18n): { tick: string; title: string } {
+  switch (period) {
+    case 'day': return { tick: date(b.start, 'H'), title: `${date(b.start, 'HH:00')}–${date(b.end, 'HH:00')}` }
+    case 'week': return { tick: cap(date(b.start, 'EEEEE')), title: cap(date(b.start, 'EEEE, d MMM')) }
+    case 'month': return { tick: date(b.start, 'd'), title: cap(date(b.start, 'EEEE, d MMM')) }
+    case 'year': return { tick: cap(date(b.start, 'LLLLL')), title: cap(date(b.start, 'LLLL yyyy')) }
+  }
 }
 
 function showTick(period: Period, i: number): boolean {
@@ -27,6 +33,8 @@ function showTick(period: Period, i: number): boolean {
 
 /** Single-series bar chart of focus time per bucket. Tap a bar for its value. */
 export function BarChart({ buckets, period }: { buckets: Bucket[]; period: Period }) {
+  const i18n = useI18n()
+  const { t, duration, axisDuration } = i18n
   const [selected, setSelected] = useState<number | null>(null)
   const max = niceMax(Math.max(...buckets.map((b) => b.ms), 1))
   const innerW = W - PAD.left - PAD.right
@@ -42,21 +50,22 @@ export function BarChart({ buckets, period }: { buckets: Bucket[]; period: Perio
       <div className="chart-readout" aria-live="polite">
         {sel ? (
           <>
-            <span>{sel.title}</span>
-            <strong>{formatDuration(sel.ms)}</strong>
+            <span>{bucketText(period, sel, i18n).title}</span>
+            <strong>{duration(sel.ms)}</strong>
           </>
         ) : (
-          <span className="hint">Tap a bar for details</span>
+          <span className="hint">{t.stats.tapBar}</span>
         )}
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Focus time per period" onPointerLeave={(e) => e.pointerType === 'mouse' && setSelected(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={t.stats.chartLabel} onPointerLeave={(e) => e.pointerType === 'mouse' && setSelected(null)}>
         {[0, max / 2, max].map((v) => (
           <g key={v}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(v)} y2={y(v)} className="chart-grid" />
-            <text x={PAD.left - 6} y={y(v) + 3.5} className="chart-axis" textAnchor="end">{axisLabel(v)}</text>
+            <text x={PAD.left - 6} y={y(v) + 3.5} className="chart-axis" textAnchor="end">{axisDuration(v)}</text>
           </g>
         ))}
         {buckets.map((b, i) => {
+          const text = bucketText(period, b, i18n)
           const x = PAD.left + i * slot + gap / 2
           const h = (b.ms / max) * innerH
           const r = Math.min(4, barW / 2, h)
@@ -71,7 +80,7 @@ export function BarChart({ buckets, period }: { buckets: Bucket[]; period: Perio
                 />
               )}
               {showTick(period, i) && (
-                <text x={x + barW / 2} y={H - 6} className="chart-axis" textAnchor="middle">{b.label}</text>
+                <text x={x + barW / 2} y={H - 6} className="chart-axis" textAnchor="middle">{text.tick}</text>
               )}
               {/* Hit target: the whole column, bigger than the bar. */}
               <rect
@@ -83,7 +92,7 @@ export function BarChart({ buckets, period }: { buckets: Bucket[]; period: Perio
                 onClick={() => setSelected(i)}
                 onPointerEnter={(e) => e.pointerType === 'mouse' && setSelected(i)}
               >
-                <title>{`${b.title}: ${formatDuration(b.ms)}`}</title>
+                <title>{`${text.title}: ${duration(b.ms)}`}</title>
               </rect>
             </g>
           )

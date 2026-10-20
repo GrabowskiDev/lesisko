@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getSpecies } from '../data/species'
-import { COMPLETED, GROWING, pick, WITHERED } from '../data/messages'
+import { useI18n } from '../i18n'
 import { saveActive } from '../lib/activeSession'
 import { awayMs, judgeAbsence, plannedEnd } from '../lib/penalty'
 import { chime } from '../lib/sound'
-import { formatClock, formatDuration, MINUTE } from '../lib/time'
+import { formatClock, MINUTE } from '../lib/time'
 import { saveSession, useTags } from '../store'
 import { TagChip } from './Pickers'
 import { Tree } from './Tree'
@@ -16,6 +16,11 @@ const MIN_STOPWATCH = MINUTE
 /** In stopwatch mode the tree is fully grown after this long. */
 const STOPWATCH_FULL = 60 * MINUTE
 
+/** Picks a message that stays put for a while (`seed` is a timestamp). */
+function pick(list: string[], seed: number): string {
+  return list[Math.abs(Math.floor(seed / 1000)) % list.length]
+}
+
 interface Props {
   active: ActiveSession
   settings: Settings
@@ -24,6 +29,7 @@ interface Props {
 }
 
 export function Running({ active: initial, settings, onClose }: Props) {
+  const { t: { running: t }, duration } = useI18n()
   const [active, setActiveState] = useState(initial)
   const [now, setNow] = useState(Date.now())
   const [checkInAway, setCheckInAway] = useState<number | null>(null)
@@ -62,17 +68,17 @@ export function Running({ active: initial, settings, onClose }: Props) {
   const resolveAbsence = useCallback(() => {
     const current = activeRef.current
     if (current.hiddenAt == null || finishing.current) return
-    const t = Date.now()
-    setNow(t)
-    switch (judgeAbsence(current, t, settings)) {
+    const at = Date.now()
+    setNow(at)
+    switch (judgeAbsence(current, at, settings)) {
       case 'continue':
         update({ ...current, hiddenAt: undefined })
         break
       case 'ask':
-        setCheckInAway(awayMs(current, t))
+        setCheckInAway(awayMs(current, at))
         break
       case 'wither':
-        void finish('withered', Math.min(t, current.hiddenAt + settings.strictMinutes * MINUTE))
+        void finish('withered', Math.min(at, current.hiddenAt + settings.strictMinutes * MINUTE))
         break
     }
   }, [settings, update, finish])
@@ -136,10 +142,10 @@ export function Running({ active: initial, settings, onClose }: Props) {
 
   if (result) return <Result session={result} onClose={onClose} />
 
-  const tag = tags.find((t) => t.id === active.tagId)
+  const tag = tags.find((tg) => tg.id === active.tagId)
   return (
     <div className="running">
-      <p className="running-message">{pick(GROWING, active.start + Math.floor(elapsed / (5 * MINUTE)) * 5 * MINUTE)}</p>
+      <p className="running-message">{pick(t.growing, active.start + Math.floor(elapsed / (5 * MINUTE)) * 5 * MINUTE)}</p>
       <div className="tree-stage growing">
         <Tree species={species} growth={growth} size={220} />
       </div>
@@ -150,67 +156,65 @@ export function Running({ active: initial, settings, onClose }: Props) {
 
       <div className="running-actions">
         {end == null ? (
-          <button className="btn primary" onClick={stopStopwatch}>I’m done</button>
+          <button className="btn primary" onClick={stopStopwatch}>{t.done}</button>
         ) : null}
-        <button className="btn ghost danger-text" onClick={() => setConfirmGiveUp(true)}>Give up</button>
+        <button className="btn ghost danger-text" onClick={() => setConfirmGiveUp(true)}>{t.giveUp}</button>
       </div>
 
       {settings.penaltyMode !== 'off' && (
         <p className="hint center running-rule">
-          {settings.penaltyMode === 'ask'
-            ? 'Locking your phone is fine — if you’re away a while, I’ll ask how it went.'
-            : `Away for more than ${settings.strictMinutes} min and your tree withers.`}
+          {settings.penaltyMode === 'ask' ? t.ruleAsk : t.ruleStrict(settings.strictMinutes)}
         </p>
       )}
 
-      <Sheet open={confirmGiveUp} onClose={() => setConfirmGiveUp(false)} title="Give up on this tree?">
-        <p className="hint">Your tree will wither and this session won’t count towards your focus time.</p>
+      <Sheet open={confirmGiveUp} onClose={() => setConfirmGiveUp(false)} title={t.giveUpTitle}>
+        <p className="hint">{t.giveUpBody}</p>
         <div className="field-row">
-          <button className="btn block" onClick={() => setConfirmGiveUp(false)}>Keep growing</button>
-          <button className="btn danger block" onClick={() => { setConfirmGiveUp(false); void finish('withered', Date.now()) }}>Give up</button>
+          <button className="btn block" onClick={() => setConfirmGiveUp(false)}>{t.keepGrowing}</button>
+          <button className="btn danger block" onClick={() => { setConfirmGiveUp(false); void finish('withered', Date.now()) }}>{t.giveUp}</button>
         </div>
       </Sheet>
 
-      <Sheet open={tooShort} onClose={() => setTooShort(false)} title="Too short for a tree">
-        <p className="hint">Sessions under a minute aren’t saved. Keep going, or discard this one?</p>
+      <Sheet open={tooShort} onClose={() => setTooShort(false)} title={t.tooShortTitle}>
+        <p className="hint">{t.tooShortBody}</p>
         <div className="field-row">
-          <button className="btn block" onClick={discard}>Discard</button>
-          <button className="btn primary block" onClick={() => setTooShort(false)}>Keep going</button>
+          <button className="btn block" onClick={discard}>{t.discard}</button>
+          <button className="btn primary block" onClick={() => setTooShort(false)}>{t.keepGoing}</button>
         </div>
       </Sheet>
 
-      <Sheet open={checkInAway != null} onClose={() => {}} title="Welcome back! 👋">
+      <Sheet open={checkInAway != null} onClose={() => {}} title={t.checkInTitle}>
         <p className="checkin-text">
-          You were away for <strong>{formatDuration(Math.max(checkInAway ?? 0, MINUTE))}</strong>.
-          Were you still focusing — phone locked, reading, writing notes?
+          {t.checkInAway} <strong>{duration(Math.max(checkInAway ?? 0, MINUTE))}</strong>. {t.checkInQuestion}
         </p>
         <div className="checkin-actions">
-          <button className="btn primary block" onClick={() => answerCheckIn(true)}>Yes, I was focusing 🌱</button>
-          <button className="btn block" onClick={() => answerCheckIn(false)}>I got distracted 🥀</button>
+          <button className="btn primary block" onClick={() => answerCheckIn(true)}>{t.checkInYes}</button>
+          <button className="btn block" onClick={() => answerCheckIn(false)}>{t.checkInNo}</button>
         </div>
-        <p className="hint center">Be honest — it’s your forest.</p>
+        <p className="hint center">{t.checkInHonest}</p>
       </Sheet>
     </div>
   )
 }
 
 function Result({ session, onClose }: { session: Session; onClose: () => void }) {
+  const { t: { result: t }, duration } = useI18n()
   const ok = session.status === 'completed'
   const species = getSpecies(session.speciesId)
   return (
     <div className="running result">
-      <h1>{ok ? 'Tree planted!' : 'Your tree withered'}</h1>
+      <h1>{ok ? t.planted : t.withered}</h1>
       <div className="tree-stage">
         <Tree species={species} withered={!ok} size={220} />
       </div>
-      <p className="running-message">{pick(ok ? COMPLETED : WITHERED, session.end)}</p>
+      <p className="running-message">{pick(ok ? t.plantedMessages : t.witheredMessages, session.end)}</p>
       {ok && (
         <div className="result-stats">
-          <span>{formatDuration(session.end - session.start)} focused</span>
+          <span>{t.focused(duration(session.end - session.start))}</span>
           <span className="coin-earned"><CoinIcon size={18} /> +{session.coins}</span>
         </div>
       )}
-      <button className="btn primary" onClick={onClose}>{ok ? 'Back to my forest' : 'Try again'}</button>
+      <button className="btn primary" onClick={onClose}>{ok ? t.back : t.tryAgain}</button>
     </div>
   )
 }

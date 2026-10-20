@@ -31,8 +31,10 @@ export interface Purchase {
 }
 
 export type PenaltyMode = 'off' | 'ask' | 'strict'
+export type Language = 'en' | 'pl'
 
 export interface Settings {
+  language: Language
   penaltyMode: PenaltyMode
   /** Time away that is always forgiven, in seconds. */
   graceSeconds: number
@@ -49,7 +51,9 @@ export interface Settings {
   lastBackupAt: number | null
 }
 
+/** `language` is replaced by the device language on first run (see db.getSettings). */
 export const DEFAULT_SETTINGS: Settings = {
+  language: 'en',
   penaltyMode: 'ask',
   graceSeconds: 10,
   strictMinutes: 2,

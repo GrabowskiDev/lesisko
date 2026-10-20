@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getSettings, requestPersistentStorage } from './db'
 import { getTheme } from './data/themes'
+import { I18nProvider, useI18n } from './i18n'
 import { loadActive, saveActive } from './lib/activeSession'
 import { Running } from './components/Running'
 import { Icon } from './components/ui'
@@ -10,28 +11,31 @@ import { ForestScreen } from './screens/ForestScreen'
 import { StatsScreen } from './screens/StatsScreen'
 import { ShopScreen } from './screens/ShopScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
-import type { ActiveSession } from './types'
+import type { ActiveSession, Settings } from './types'
 
 type Tab = 'focus' | 'forest' | 'stats' | 'shop' | 'settings'
 
-const TABS: { id: Tab; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
-  { id: 'focus', label: 'Focus', icon: 'timer' },
-  { id: 'forest', label: 'Forest', icon: 'forest' },
-  { id: 'stats', label: 'Stats', icon: 'stats' },
-  { id: 'shop', label: 'Shop', icon: 'shop' },
-  { id: 'settings', label: 'Settings', icon: 'settings' },
+const TABS: { id: Tab; icon: Parameters<typeof Icon>[0]['name'] }[] = [
+  { id: 'focus', icon: 'timer' },
+  { id: 'forest', icon: 'forest' },
+  { id: 'stats', icon: 'stats' },
+  { id: 'shop', icon: 'shop' },
+  { id: 'settings', icon: 'settings' },
 ]
 
 export function App() {
   // Wait for real settings before rendering: the penalty rules must be known before
   // a restored session judges time spent away.
   const settings = useLiveQuery(getSettings)
-  const [tab, setTab] = useState<Tab>('focus')
-  const [active, setActive] = useState<ActiveSession | null>(loadActive)
+  const language = settings?.language
 
   useEffect(() => {
     void requestPersistentStorage()
   }, [])
+
+  useEffect(() => {
+    if (language) document.documentElement.lang = language
+  }, [language])
 
   const themeId = settings?.themeId
   useEffect(() => {
@@ -42,11 +46,22 @@ export function App() {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.vars['--bg'])
   }, [themeId])
 
+  if (!settings) return null
+  return (
+    <I18nProvider lang={settings.language}>
+      <Main settings={settings} />
+    </I18nProvider>
+  )
+}
+
+function Main({ settings }: { settings: Settings }) {
+  const { t } = useI18n()
+  const [tab, setTab] = useState<Tab>('focus')
+  const [active, setActive] = useState<ActiveSession | null>(loadActive)
+
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [tab])
-
-  if (!settings) return null
 
   if (active) {
     return <Running active={active} settings={settings} onClose={() => setActive(null)} />
@@ -71,10 +86,10 @@ export function App() {
         {tab === 'settings' && <SettingsScreen settings={settings} />}
       </main>
       <nav className="tab-bar">
-        {TABS.map((t) => (
-          <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}>
-            <Icon name={t.icon} />
-            <span>{t.label}</span>
+        {TABS.map((item) => (
+          <button key={item.id} className={tab === item.id ? 'active' : ''} onClick={() => setTab(item.id)} aria-current={tab === item.id ? 'page' : undefined}>
+            <Icon name={item.icon} />
+            <span>{t.tabs[item.id]}</span>
           </button>
         ))}
       </nav>

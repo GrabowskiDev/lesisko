@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { detectLanguage } from './i18n/detect'
 import { DEFAULT_SETTINGS, type Purchase, type Session, type Settings, type Tag } from './types'
 
 interface KV {
@@ -22,7 +23,7 @@ db.version(1).stores({
 
 export async function getSettings(): Promise<Settings> {
   const row = await db.kv.get('settings')
-  return { ...DEFAULT_SETTINGS, ...(row?.value as Partial<Settings> | undefined) }
+  return { ...DEFAULT_SETTINGS, language: detectLanguage(), ...(row?.value as Partial<Settings> | undefined) }
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {

@@ -35,7 +35,7 @@ describe('stats', () => {
 
     const days = buckets('week', new Date(2026, 9, 20), sessions)
     expect(days).toHaveLength(7)
-    expect(days[0].label).toBe('M') // weeks start on Monday
+    expect(new Date(days[0].start).getDay()).toBe(1) // weeks start on Monday
   })
 
   it('totals by tag, largest first', () => {

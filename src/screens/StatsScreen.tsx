@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { differenceInCalendarDays } from 'date-fns'
+import { useI18n } from '../i18n'
 import { buckets, currentStreak, sessionsInRange, totalFocus, totalsByTag } from '../lib/stats'
-import { formatDuration, periodRange, shiftAnchor, type Period, type Range } from '../lib/time'
+import { periodRange, shiftAnchor, type Period, type Range } from '../lib/time'
 import { tagColor, useDark, useSessions, useTags } from '../store'
 import { BarChart } from '../components/BarChart'
 import { TagDot } from '../components/Pickers'
-import { PERIOD_OPTIONS, PeriodNav, Segmented } from '../components/ui'
-
-const PREVIOUS: Record<Period, string> = { day: 'yesterday', week: 'last week', month: 'last month', year: 'last year' }
+import { PeriodNav, PeriodTabs } from '../components/ui'
 
 /**
  * The previous period, cut to the same length as the part of the current one that has
@@ -21,6 +20,7 @@ function previousRange(period: Period, anchor: Date, current: Range): { range: R
 }
 
 export function StatsScreen() {
+  const { t: { stats: t, common }, duration } = useI18n()
   const sessions = useSessions()
   const tags = useTags()
   const dark = useDark()
@@ -44,62 +44,62 @@ export function StatsScreen() {
   return (
     <div className="screen">
       <header className="top-bar">
-        <h1>Statistics</h1>
+        <h1>{t.title}</h1>
       </header>
 
-      <Segmented value={period} options={PERIOD_OPTIONS} onChange={setPeriod} />
+      <PeriodTabs value={period} onChange={setPeriod} />
       <PeriodNav period={period} anchor={anchor} onShift={(d) => setAnchor(shiftAnchor(period, anchor, d))} onReset={() => setAnchor(new Date())} />
 
       <section className="hero card">
-        <span className="label">Focused</span>
-        <strong className="hero-number">{formatDuration(total)}</strong>
+        <span className="label">{t.focused}</span>
+        <strong className="hero-number">{duration(total)}</strong>
         {delta != null && (
           <span className={`delta ${delta >= 0 ? 'up' : 'down'}`}>
-            {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}% vs {prev.partial ? 'this point ' : ''}{PREVIOUS[period]}
+            {delta >= 0 ? '▲' : '▼'} {t.delta(Math.abs(delta), period, prev.partial)}
           </span>
         )}
       </section>
 
       <section className="tiles">
         <div className="tile card">
-          <span className="label">Trees planted</span>
+          <span className="label">{t.planted}</span>
           <strong>{planted}</strong>
         </div>
         <div className="tile card">
-          <span className="label">Withered</span>
+          <span className="label">{t.withered}</span>
           <strong>{withered}</strong>
         </div>
         {period !== 'day' && (
           <div className="tile card">
-            <span className="label">Daily average</span>
-            <strong>{formatDuration(total / daysSoFar)}</strong>
+            <span className="label">{t.dailyAverage}</span>
+            <strong>{duration(total / daysSoFar)}</strong>
           </div>
         )}
         <div className="tile card">
-          <span className="label">Current streak</span>
-          <strong>{streak} day{streak === 1 ? '' : 's'}</strong>
+          <span className="label">{t.streak}</span>
+          <strong>{t.days(streak)}</strong>
         </div>
       </section>
 
       <section className="card">
-        <h2 className="card-title">Focus time</h2>
+        <h2 className="card-title">{t.chartTitle}</h2>
         <BarChart key={`${period}-${range.start}`} buckets={buckets(period, anchor, sessions)} period={period} />
       </section>
 
       <section className="card">
-        <h2 className="card-title">By tag</h2>
+        <h2 className="card-title">{t.byTag}</h2>
         {byTag.length === 0 ? (
-          <p className="hint">Nothing here yet.</p>
+          <p className="hint">{t.nothing}</p>
         ) : (
           <ul className="tag-bars">
             {byTag.map(({ tagId, ms }) => {
-              const tag = tags.find((t) => t.id === tagId)
+              const tag = tags.find((tg) => tg.id === tagId)
               const pct = total > 0 ? (ms / total) * 100 : 0
               return (
                 <li key={tagId ?? 'none'}>
                   <div className="tag-bar-label">
-                    <span><TagDot tag={tag} /> {tag?.name ?? 'No tag'}</span>
-                    <span>{formatDuration(ms)} <span className="hint">· {Math.round(pct)}%</span></span>
+                    <span><TagDot tag={tag} /> {tag?.name ?? common.noTag}</span>
+                    <span>{duration(ms)} <span className="hint">· {Math.round(pct)}%</span></span>
                   </div>
                   <div className="tag-bar-track">
                     <span style={{ width: `${pct}%`, background: tagColor(tag, dark) }} />

@@ -1,6 +1,9 @@
+export const THEME_IDS = ['meadow', 'autumn', 'winter', 'sakura', 'night'] as const
+export type ThemeId = (typeof THEME_IDS)[number]
+
+/** Names live in the i18n dictionaries, keyed by id. */
 export interface Theme {
-  id: string
-  name: string
+  id: ThemeId
   price: number
   dark: boolean
   /** CSS custom properties applied to :root. */
@@ -26,21 +29,21 @@ const base = {
 }
 
 export const THEMES: Theme[] = [
-  { id: 'meadow', name: 'Meadow', price: 0, dark: false, vars: base },
+  { id: 'meadow', price: 0, dark: false, vars: base },
   {
-    id: 'autumn', name: 'Autumn', price: 300, dark: false,
+    id: 'autumn', price: 300, dark: false,
     vars: { ...base, '--bg': '#f6eee2', '--surface-2': '#efe1cc', '--accent': '#c8693a', '--accent-soft': '#f4d9c2', '--ground': '#d9b06b', '--ground-2': '#c7924f', '--sky': '#f7e6d2' },
   },
   {
-    id: 'winter', name: 'Winter', price: 300, dark: false,
+    id: 'winter', price: 300, dark: false,
     vars: { ...base, '--bg': '#eef3f5', '--surface': '#fbfdfe', '--surface-2': '#dfe8ec', '--ink': '#25343b', '--ink-2': '#56666d', '--accent': '#4f8aa6', '--accent-soft': '#d3e5ee', '--ground': '#f4f8fa', '--ground-2': '#d8e4ea', '--sky': '#dfebf1' },
   },
   {
-    id: 'sakura', name: 'Sakura', price: 500, dark: false,
+    id: 'sakura', price: 500, dark: false,
     vars: { ...base, '--bg': '#fbf0f2', '--surface-2': '#f3dfe3', '--accent': '#cc6b8a', '--accent-soft': '#f6d6e0', '--ground': '#c9dba0', '--ground-2': '#afc885', '--sky': '#fae3ea' },
   },
   {
-    id: 'night', name: 'Night Forest', price: 500, dark: true,
+    id: 'night', price: 500, dark: true,
     vars: {
       ...base, '--bg': '#152019', '--surface': '#1e2b22', '--surface-2': '#273629', '--ink': '#e7efe1', '--ink-2': '#b1bfa9', '--ink-3': '#7f8e78',
       '--accent': '#7dbb6c', '--accent-ink': '#10180f', '--accent-soft': '#2c4229', '--ground': '#2f4a2c', '--ground-2': '#253d23', '--sky': '#1b2a2a',

@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
-import { periodLabel, type Period } from '../lib/time'
+import { useI18n } from '../i18n'
+import type { Period } from '../lib/time'
 
 export function Sheet({ open, onClose, title, children }: {
   open: boolean
@@ -49,12 +50,11 @@ export function Segmented<T extends string>({ value, options, onChange, small }:
   )
 }
 
-export const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: 'day', label: 'Day' },
-  { value: 'week', label: 'Week' },
-  { value: 'month', label: 'Month' },
-  { value: 'year', label: 'Year' },
-]
+export function PeriodTabs({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
+  const { t } = useI18n()
+  const periods: Period[] = ['day', 'week', 'month', 'year']
+  return <Segmented value={value} onChange={onChange} options={periods.map((p) => ({ value: p, label: t.periods[p] }))} />
+}
 
 export function PeriodNav({ period, anchor, onShift, onReset }: {
   period: Period
@@ -62,13 +62,14 @@ export function PeriodNav({ period, anchor, onShift, onReset }: {
   onShift: (dir: 1 | -1) => void
   onReset: () => void
 }) {
+  const { t, periodLabel } = useI18n()
   return (
     <div className="period-nav">
-      <button className="icon-btn" onClick={() => onShift(-1)} aria-label="Previous">
+      <button className="icon-btn" onClick={() => onShift(-1)} aria-label={t.common.previous}>
         <Icon name="chevron-left" />
       </button>
       <button className="period-label" onClick={onReset}>{periodLabel(period, anchor)}</button>
-      <button className="icon-btn" onClick={() => onShift(1)} aria-label="Next">
+      <button className="icon-btn" onClick={() => onShift(1)} aria-label={t.common.next}>
         <Icon name="chevron-right" />
       </button>
     </div>
@@ -76,9 +77,10 @@ export function PeriodNav({ period, anchor, onShift, onReset }: {
 }
 
 export function CoinBadge({ coins }: { coins: number }) {
+  const { number } = useI18n()
   return (
     <span className="coin-badge">
-      <CoinIcon /> {coins.toLocaleString()}
+      <CoinIcon /> {number(coins)}
     </span>
   )
 }

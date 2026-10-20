@@ -1,5 +1,6 @@
 import { db, getSettings, newId } from '../db'
 import { SPECIES } from '../data/species'
+import { en } from '../i18n/en'
 import { TAG_COLORS } from '../data/themes'
 import { coinsFor } from './coins'
 import type { ForestRow } from './forestCsv'
@@ -28,16 +29,22 @@ export async function createBackup(): Promise<Backup> {
   }
 }
 
+export class BackupError extends Error {
+  constructor(readonly code: 'invalidJson' | 'notBackup') {
+    super(code)
+  }
+}
+
 export function parseBackup(text: string): Backup {
   let data: unknown
   try {
     data = JSON.parse(text)
   } catch {
-    throw new Error("This file isn't valid JSON.")
+    throw new BackupError('invalidJson')
   }
   const b = data as Partial<Backup>
   if (b?.app !== 'better-forest' || !Array.isArray(b.sessions) || !Array.isArray(b.tags)) {
-    throw new Error("This doesn't look like a Better Forest backup.")
+    throw new BackupError('notBackup')
   }
   return { ...b, purchases: b.purchases ?? [] } as Backup
 }
@@ -79,10 +86,11 @@ export interface ForestImportSummary {
   newTags: string[]
 }
 
+/** Forest exports English tree names, so match against ours in English. */
 function matchSpecies(treeType: string | null): string {
   if (!treeType) return 'oak'
   const t = treeType.toLowerCase()
-  return SPECIES.find((s) => t.includes(s.id) || t.includes(s.name.toLowerCase()))?.id ?? 'oak'
+  return SPECIES.find((s) => t.includes(s.id) || t.includes(en.species[s.id].name.toLowerCase()))?.id ?? 'oak'
 }
 
 /**
