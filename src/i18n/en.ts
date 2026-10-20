@@ -199,7 +199,7 @@ export const en = {
     costs: 'Costs',
     youHave: (n: string) => `you have ${n}`,
     missing: (n: number, hours: number) =>
-      `${n} more ${p(n, 'coin', 'coins')} — about ${hours} ${p(hours, 'hour', 'hours')} of focus.`,
+      `${n.toLocaleString('en')} more ${p(n, 'coin', 'coins')} — about ${hours} ${p(hours, 'hour', 'hours')} of focus.`,
     notEnough: 'Not enough coins yet — keep focusing!',
     unlock: 'Unlock',
   },

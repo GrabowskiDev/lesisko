@@ -191,7 +191,7 @@ export const pl: Messages = {
     costs: 'Koszt',
     youHave: (n) => `masz ${n}`,
     missing: (n, hours) =>
-      `Brakuje ${n} ${n === 1 ? 'monety' : 'monet'} — to ok. ${hours} ${p(hours, 'godzina', 'godziny', 'godzin')} skupienia.`,
+      `Brakuje ${n.toLocaleString('pl')} ${n === 1 ? 'monety' : 'monet'} — to ok. ${hours} ${p(hours, 'godzina', 'godziny', 'godzin')} skupienia.`,
     notEnough: 'Za mało monet — skupiaj się dalej!',
     unlock: 'Odblokuj',
   },

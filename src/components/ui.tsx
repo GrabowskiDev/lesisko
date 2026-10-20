@@ -37,6 +37,7 @@ export function Segmented<T extends string>({ value, options, onChange, small }:
     <div className={`segmented${small ? ' small' : ''}`} role="tablist">
       {options.map((o) => (
         <button
+          type="button"
           key={o.value}
           role="tab"
           aria-selected={o.value === value}
@@ -119,7 +120,7 @@ export function Icon({ name, size = 22 }: { name: keyof typeof ICONS; size?: num
 
 export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
-    <button role="switch" aria-checked={checked} aria-label={label} className={`toggle${checked ? ' on' : ''}`} onClick={() => onChange(!checked)}>
+    <button type="button" role="switch" aria-checked={checked} aria-label={label} className={`toggle${checked ? ' on' : ''}`} onClick={() => onChange(!checked)}>
       <span />
     </button>
   )

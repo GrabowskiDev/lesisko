@@ -45,6 +45,8 @@ To add a language: create `src/i18n/xx.ts` typed as `Messages`, then register it
 npm install
 npm run dev        # http://localhost:5173 (also on your LAN, see below)
 npm test           # unit tests (vitest)
+npm run test:e2e   # end-to-end tests in WebKit + Chrome with iPhone emulation
+                   # (first time: npx playwright install webkit)
 npm run build      # type-check + production build into dist/
 npm run preview    # serve the production build
 ```

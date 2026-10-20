@@ -1,0 +1,5 @@
+Start Time,End Time,Tag,Note,Tree Type,Is Success
+2026-10-12 09:00:00,2026-10-12 10:00:00,Math,"Ch. 3, exercises",Cedar,True
+2026-10-13 14:00:00,2026-10-13 14:25:00,Coding,,Cherry Blossom,True
+2026-10-14 20:00:00,2026-10-14 20:10:00,,,Bush,False
+not a date,2026-10-15 10:00:00,,,,True

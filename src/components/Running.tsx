@@ -29,7 +29,7 @@ interface Props {
 }
 
 export function Running({ active: initial, settings, onClose }: Props) {
-  const { t: { running: t }, duration } = useI18n()
+  const { t: { running: t, units }, duration } = useI18n()
   const [active, setActiveState] = useState(initial)
   const [now, setNow] = useState(Date.now())
   const [checkInAway, setCheckInAway] = useState<number | null>(null)
@@ -135,6 +135,8 @@ export function Running({ active: initial, settings, onClose }: Props) {
     void finish('completed', Date.now())
   }
 
+  const awayLabel = (ms: number) => (ms < MINUTE ? units.seconds(Math.round(ms / 1000)) : duration(ms))
+
   const discard = () => {
     saveActive(null)
     onClose()
@@ -185,7 +187,7 @@ export function Running({ active: initial, settings, onClose }: Props) {
 
       <Sheet open={checkInAway != null} onClose={() => {}} title={t.checkInTitle}>
         <p className="checkin-text">
-          {t.checkInAway} <strong>{duration(Math.max(checkInAway ?? 0, MINUTE))}</strong>. {t.checkInQuestion}
+          {t.checkInAway} <strong>{awayLabel(checkInAway ?? 0)}</strong>. {t.checkInQuestion}
         </p>
         <div className="checkin-actions">
           <button className="btn primary block" onClick={() => answerCheckIn(true)}>{t.checkInYes}</button>

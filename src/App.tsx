@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
-import { getSettings, requestPersistentStorage } from './db'
+import { requestPersistentStorage } from './db'
 import { getTheme } from './data/themes'
 import { I18nProvider, useI18n } from './i18n'
 import { loadActive, saveActive } from './lib/activeSession'
+import { DataProvider, useSettings } from './store'
 import { Running } from './components/Running'
 import { Icon } from './components/ui'
 import { FocusScreen } from './screens/FocusScreen'
@@ -24,31 +24,37 @@ const TABS: { id: Tab; icon: Parameters<typeof Icon>[0]['name'] }[] = [
 ]
 
 export function App() {
-  // Wait for real settings before rendering: the penalty rules must be known before
-  // a restored session judges time spent away.
-  const settings = useLiveQuery(getSettings)
-  const language = settings?.language
-
   useEffect(() => {
     void requestPersistentStorage()
   }, [])
 
+  // DataProvider renders nothing until settings are loaded, which matters: the penalty
+  // rules must be known before a restored session judges time spent away.
+  return (
+    <DataProvider>
+      <Root />
+    </DataProvider>
+  )
+}
+
+function Root() {
+  const settings = useSettings()
+  const { language, themeId } = settings
+
   useEffect(() => {
-    if (language) document.documentElement.lang = language
+    document.documentElement.lang = language
   }, [language])
 
-  const themeId = settings?.themeId
   useEffect(() => {
-    const theme = getTheme(themeId ?? 'meadow')
+    const theme = getTheme(themeId)
     const root = document.documentElement
     for (const [k, v] of Object.entries(theme.vars)) root.style.setProperty(k, v)
     root.style.colorScheme = theme.dark ? 'dark' : 'light'
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.vars['--bg'])
   }, [themeId])
 
-  if (!settings) return null
   return (
-    <I18nProvider lang={settings.language}>
+    <I18nProvider lang={language}>
       <Main settings={settings} />
     </I18nProvider>
   )

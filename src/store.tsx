@@ -1,44 +1,75 @@
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, getSettings, newId } from './db'
 import { coinBalance, coinsFor } from './lib/coins'
 import { getTheme, TAG_COLORS } from './data/themes'
-import { DEFAULT_SETTINGS, type Purchase, type Session, type Settings, type Tag } from './types'
+import type { Purchase, Session, Settings, Tag } from './types'
+
+// ---- data provider --------------------------------------------------------
+
+interface AppData {
+  settings: Settings
+  sessions: Session[]
+  tags: Tag[]
+  purchases: Purchase[]
+}
+
+const DataContext = createContext<AppData | null>(null)
+
+/**
+ * Loads everything once and keeps it live. Nothing renders until the first load is done,
+ * so screens never see placeholder values (a coin balance of 0, default settings, …).
+ */
+export function DataProvider({ children }: { children: ReactNode }) {
+  const settings = useLiveQuery(getSettings)
+  const sessions = useLiveQuery(() => db.sessions.orderBy('start').toArray())
+  const tags = useLiveQuery(() => db.tags.toArray())
+  const purchases = useLiveQuery(() => db.purchases.toArray())
+  const data = useMemo(
+    () => (settings && sessions && tags && purchases ? { settings, sessions, tags, purchases } : null),
+    [settings, sessions, tags, purchases],
+  )
+  if (!data) return null
+  return <DataContext.Provider value={data}>{children}</DataContext.Provider>
+}
+
+function useData(): AppData {
+  const data = useContext(DataContext)
+  if (!data) throw new Error('useData() needs a <DataProvider> above it')
+  return data
+}
 
 // ---- hooks ----------------------------------------------------------------
 
 export function useSettings(): Settings {
-  return useLiveQuery(getSettings, [], DEFAULT_SETTINGS)
+  return useData().settings
 }
 
 export function useDark(): boolean {
   return getTheme(useSettings().themeId).dark
 }
 
+/** All sessions, oldest first. */
 export function useSessions(): Session[] {
-  return useLiveQuery(() => db.sessions.orderBy('start').toArray(), [], [])
+  return useData().sessions
 }
 
 export function useTags(): Tag[] {
-  return useLiveQuery(() => db.tags.toArray(), [], [])
-}
-
-export function usePurchases(): Purchase[] {
-  return useLiveQuery(() => db.purchases.toArray(), [], [])
+  return useData().tags
 }
 
 export function useCoins(): number {
-  return useLiveQuery(
-    async () => coinBalance(await db.sessions.toArray(), await db.purchases.toArray()),
-    [],
-    0,
-  )
+  const { sessions, purchases } = useData()
+  return useMemo(() => coinBalance(sessions, purchases), [sessions, purchases])
 }
 
 /** Whether a shop item (species or theme) can be used: free items are always owned. */
 export function useOwns(): (item: { id: string; price: number }) => boolean {
-  const purchases = usePurchases()
-  const bought = new Set(purchases.map((p) => p.itemId))
-  return (item) => item.price === 0 || bought.has(item.id)
+  const { purchases } = useData()
+  return useMemo(() => {
+    const bought = new Set(purchases.map((p) => p.itemId))
+    return (item) => item.price === 0 || bought.has(item.id)
+  }, [purchases])
 }
 
 export function tagColor(tag: Tag | undefined, dark: boolean): string {
