@@ -100,8 +100,14 @@ test.describe('focus timer', () => {
 
   test('if saving fails, the session keeps running and says so', async ({ app }) => {
     await app.getByRole('button', { name: 'Plant' }).click()
+    // Only session writes fail, so unrelated writes (e.g. the remembered timer length
+    // saved on Plant) can't race in and fail the test as an uncaught error.
     await app.evaluate(() => {
-      IDBObjectStore.prototype.put = () => { throw new Error('disk full') }
+      const put = IDBObjectStore.prototype.put
+      IDBObjectStore.prototype.put = function (this: IDBObjectStore, ...args: Parameters<IDBObjectStore['put']>) {
+        if (this.name === 'sessions') throw new Error('disk full')
+        return put.apply(this, args)
+      }
     })
     await app.getByRole('button', { name: 'Give up' }).click()
     await app.getByRole('dialog', { name: 'Give up on this tree?' }).getByRole('button', { name: 'Give up' }).click()

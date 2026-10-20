@@ -59,7 +59,7 @@ npm run preview    # serve the production build
 2. Tap **Share → Add to Home Screen**.
 3. Launch it from the Home Screen icon. It opens full-screen, works offline, and updates itself.
 
-Hosting: `.github/workflows/deploy.yml` builds, tests and publishes to GitHub Pages on every push to `main`. Enable it under *Settings → Pages → Source: GitHub Actions*.
+Hosting: Netlify builds and publishes every push to `main` (settings in `netlify.toml`), and gives each branch or pull request its own preview link. GitHub Actions (`.github/workflows/ci.yml`) runs the unit tests and a build on every push.
 
 ## Code map
 
