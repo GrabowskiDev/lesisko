@@ -36,6 +36,7 @@ export const en = {
     next: 'Next',
     decrease: 'Decrease',
     increase: 'Increase',
+    saveFailed: 'Couldn’t save this session. Please try again.',
   },
 
   tabs: { focus: 'Focus', forest: 'Forest', stats: 'Stats', shop: 'Shop', settings: 'Settings' },

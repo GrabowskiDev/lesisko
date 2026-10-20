@@ -25,7 +25,7 @@ export function SessionSheet({ open, onClose, session }: {
 }
 
 function SessionForm({ session, onDone }: { session?: Session; onDone: () => void }) {
-  const { t: { sessionForm: t }, duration } = useI18n()
+  const { t: { sessionForm: t, common }, duration } = useI18n()
   const settings = useSettings()
   const sessions = useSessions()
   const initial = useMemo(() => {
@@ -44,6 +44,7 @@ function SessionForm({ session, onDone }: { session?: Session; onDone: () => voi
   const [note, setNote] = useState(session?.note ?? '')
   const [survived, setSurvived] = useState(session ? session.status === 'completed' : true)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [saveFailed, setSaveFailed] = useState(false)
 
   const totalMinutes = hours * 60 + mins
   const start = date && time ? fromDateTimeInputs(date, time) : NaN
@@ -67,16 +68,22 @@ function SessionForm({ session, onDone }: { session?: Session; onDone: () => voi
 
   const save = async () => {
     if (error) return
-    await saveSession({
-      id: session?.id,
-      start,
-      end,
-      status: survived ? 'completed' : 'withered',
-      source: session?.source ?? 'manual',
-      speciesId,
-      tagId,
-      note: note.trim() || undefined,
-    })
+    try {
+      await saveSession({
+        id: session?.id,
+        start,
+        end,
+        status: survived ? 'completed' : 'withered',
+        source: session?.source ?? 'manual',
+        speciesId,
+        tagId,
+        note: note.trim() || undefined,
+      })
+    } catch (e) {
+      console.error(e)
+      setSaveFailed(true)
+      return
+    }
     onDone()
   }
 
@@ -154,6 +161,7 @@ function SessionForm({ session, onDone }: { session?: Session; onDone: () => voi
         </p>
       )}
       {error && <p className="warning">{error}</p>}
+      {saveFailed && <p className="warning" role="alert">{common.saveFailed}</p>}
 
       <button type="submit" className="btn primary block" disabled={!!error}>
         {session ? t.save : totalMinutes > 0 ? t.addDuration(duration(totalMinutes * MINUTE)) : t.addSession}

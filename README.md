@@ -51,7 +51,7 @@ npm run build      # type-check + production build into dist/
 npm run preview    # serve the production build
 ```
 
-**Try it on your iPhone before hosting:** with `npm run dev` running, open the "Network" URL Vite prints (e.g. `http://192.168.1.20:5173`) in Safari on a phone on the same Wi-Fi. Offline mode is disabled over plain HTTP, but everything else works. Data saved there stays with that address, so use Export/Restore to move it.
+**Try it on your iPhone before hosting:** with `npm run dev` running, open the "Network" URL Vite prints (e.g. `http://192.168.1.20:5173`) in Safari on a phone on the same Wi-Fi. Over plain HTTP, offline mode is disabled and Export falls back to a download instead of the share sheet; everything else works. Data saved there stays with that address, so use Export/Restore to move it.
 
 ## Installing on iPhone (once hosted)
 

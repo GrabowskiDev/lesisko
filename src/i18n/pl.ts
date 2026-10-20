@@ -23,6 +23,7 @@ export const pl: Messages = {
     next: 'Następny',
     decrease: 'Zmniejsz',
     increase: 'Zwiększ',
+    saveFailed: 'Nie udało się zapisać sesji. Spróbuj ponownie.',
   },
 
   tabs: { focus: 'Skupienie', forest: 'Las', stats: 'Statystyki', shop: 'Sklep', settings: 'Ustawienia' },

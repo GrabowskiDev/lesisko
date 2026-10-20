@@ -29,13 +29,14 @@ interface Props {
 }
 
 export function Running({ active: initial, settings, onClose }: Props) {
-  const { t: { running: t, units }, duration } = useI18n()
+  const { t: { running: t, units, common }, duration } = useI18n()
   const [active, setActiveState] = useState(initial)
   const [now, setNow] = useState(Date.now())
   const [checkInAway, setCheckInAway] = useState<number | null>(null)
   const [confirmGiveUp, setConfirmGiveUp] = useState(false)
   const [result, setResult] = useState<Session | null>(null)
   const [tooShort, setTooShort] = useState(false)
+  const [saveFailed, setSaveFailed] = useState(false)
   const finishing = useRef(false)
   const tags = useTags()
 
@@ -57,9 +58,18 @@ export function Running({ active: initial, settings, onClose }: Props) {
   const finish = useCallback(async (status: Session['status'], at: number) => {
     if (finishing.current) return
     finishing.current = true
-    saveActive(null)
     const { start, speciesId, tagId } = activeRef.current
-    const session = await saveSession({ start, end: at, status, source: 'timer', speciesId, tagId })
+    let session: Session
+    try {
+      session = await saveSession({ start, end: at, status, source: 'timer', speciesId, tagId })
+    } catch (e) {
+      // Keep the running session (it's still in localStorage) so nothing is lost, and say so.
+      console.error(e)
+      finishing.current = false
+      setSaveFailed(true)
+      return
+    }
+    saveActive(null)
     if (status === 'completed' && settings.sound && document.visibilityState === 'visible') chime()
     setResult(session)
   }, [settings.sound])
@@ -162,6 +172,8 @@ export function Running({ active: initial, settings, onClose }: Props) {
         ) : null}
         <button className="btn ghost danger-text" onClick={() => setConfirmGiveUp(true)}>{t.giveUp}</button>
       </div>
+
+      {saveFailed && <p className="warning" role="alert">{common.saveFailed}</p>}
 
       {settings.penaltyMode !== 'off' && (
         <p className="hint center running-rule">

@@ -33,10 +33,6 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   })
 }
 
-export function newId(): string {
-  return crypto.randomUUID()
-}
-
 /** Ask the browser not to evict our data under storage pressure. */
 export async function requestPersistentStorage(): Promise<boolean> {
   if (!navigator.storage?.persist) return false

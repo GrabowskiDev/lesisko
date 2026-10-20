@@ -98,6 +98,18 @@ test.describe('focus timer', () => {
     await expect(app.locator('.result-stats')).toContainText('20m focused')
   })
 
+  test('if saving fails, the session keeps running and says so', async ({ app }) => {
+    await app.getByRole('button', { name: 'Plant' }).click()
+    await app.evaluate(() => {
+      IDBObjectStore.prototype.put = () => { throw new Error('disk full') }
+    })
+    await app.getByRole('button', { name: 'Give up' }).click()
+    await app.getByRole('dialog', { name: 'Give up on this tree?' }).getByRole('button', { name: 'Give up' }).click()
+    await expect(app.getByRole('alert')).toHaveText('Couldn’t save this session. Please try again.')
+    await expect(app.locator('.clock')).toBeVisible()
+    expect(await app.evaluate(() => localStorage.getItem('better-forest.active'))).not.toBeNull()
+  })
+
   test('giving up withers the tree', async ({ app }) => {
     await app.getByRole('button', { name: 'Plant' }).click()
     await app.getByRole('button', { name: 'Give up' }).click()

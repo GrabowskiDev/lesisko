@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, getSettings, newId } from './db'
+import { db, getSettings } from './db'
+import { newId } from './lib/id'
 import { coinBalance, coinsFor } from './lib/coins'
 import { getTheme, TAG_COLORS } from './data/themes'
 import type { Purchase, Session, Settings, Tag } from './types'

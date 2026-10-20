@@ -1,4 +1,5 @@
-import { db, getSettings, newId } from '../db'
+import { db, getSettings } from '../db'
+import { newId } from './id'
 import { SPECIES } from '../data/species'
 import { en } from '../i18n/en'
 import { TAG_COLORS } from '../data/themes'
